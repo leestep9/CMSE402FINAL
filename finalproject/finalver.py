@@ -28,7 +28,7 @@ st.markdown("---")
 # Load your data
 @st.cache(allow_output_mutation=True)  # This decorator caches the data to prevent reloading on every interaction
 def load_data():
-    data = pd.read_csv('../Data/charts.csv')
+    data = pd.read_csv('charts.csv')
 
     data['date'] = pd.to_datetime(data['date'])  # Ensuring 'date' is datetime
     
