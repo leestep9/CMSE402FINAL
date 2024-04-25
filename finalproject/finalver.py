@@ -24,30 +24,24 @@ The goal of this analysis is to provide stakeholders with actionable insights on
 st.markdown("---") 
 
 
+# Load the data from a CSV file
+data = pd.read_csv('charts.csv')
 
-# Load your data
-@st.cache(allow_output_mutation=True)  # This decorator caches the data to prevent reloading on every interaction
-def load_data():
-    data = pd.read_csv('charts.csv')
+# Convert 'date' column to datetime format
+data['date'] = pd.to_datetime(data['date'])
 
-    data['date'] = pd.to_datetime(data['date'])  # Ensuring 'date' is datetime
-    
+# Filter data for the first 4 weeks of each song's presence on the board
+data_first_4_weeks = data[data['weeks-on-board'] <= 4]
 
-    # Assuming 'weeks-on-board' indicates the week number for each song's chart life
-    # Filter data for the first 4 weeks of each song's presence on the board
-    data_first_4_weeks = data[data['weeks-on-board'] <= 4]
+# Calculate the minimum rank (which is the peak rank) during the first 4 weeks
+peak_ranks = data_first_4_weeks.groupby(['song', 'artist']).agg(peak_rank_first_4_weeks=('rank', 'min')).reset_index()
 
-    # Calculate the minimum rank (which is the peak rank) during the first 4 weeks
-    peak_ranks = data_first_4_weeks.groupby(['song', 'artist']).agg(peak_rank_first_4_weeks=('rank', 'min')).reset_index()
+# Merge this back with the original data
+data = data.merge(peak_ranks, on=['song', 'artist'], how='left')
 
-    # Merge this back with the original data
-    data = data.merge(peak_ranks, on=['song', 'artist'], how='left')
-    # Assuming 'weeks-on-board' is the correct column but you need it as 'total_weeks_on_board'
-    data['total_weeks_on_board'] = data['weeks-on-board']
+# Rename 'weeks-on-board' to 'total_weeks_on_board'
+data['total_weeks_on_board'] = data['weeks-on-board']
 
-    return data
-
-data = load_data().copy() 
 
 st.sidebar.header('User Input Features')
 rank_range = st.sidebar.slider('Select rank range', 1, 100, (1, 50))
